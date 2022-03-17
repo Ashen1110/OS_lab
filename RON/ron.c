@@ -1,6 +1,7 @@
 //#define _GNU_SOURCE
-#include <iostream>
-#include <thread>
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
 #include <atomic>
 #include <unistd.h>
 #include <sys/types.h>
@@ -9,16 +10,14 @@
 #define nCS_size 10
 #define Num_core 4
 //millisecond
-using namespace std;
 //sysconf(_SC_NPROCESSORS_ONLN);//std::thread::hardware_concurrency();//get_number_of_cpu_core
 int TSP_ID_ARRAY[Num_core];
 thread_local int TSP_ID;
-atomic_bool InUse=ATOMIC_VAR_INIT(false);
+atomic_bool InUse=false;
 atomic_int WaitArray[Num_core];
 
 void spin_init(){
-	unsigned int cpu,node;
-	TSP_ID = TSP_ID_ARRAY[getcpu(&cpu,&node)];
+	TSP_ID = TSP_ID_ARRAY[getcpu()];
 	for(int i=0; i<Num_core; i++){
 		WaitArray[i]=0;
 	}
