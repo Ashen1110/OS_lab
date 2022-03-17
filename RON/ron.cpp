@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <iostream>
 #include <thread>
 #include <atomic>
@@ -5,7 +6,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sched.h>
-#define _GNU_SOURCE
 
 using namespace std;
 
