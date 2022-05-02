@@ -49,9 +49,9 @@ void spin_unlock(){
 int* user;
 int thread_num;
 int user_num;
-void dothread(){
+void * dothread(void *arg){
 	cpu_set_t cpuset;
-	CPU_SERO(&cpuset);
+	CPU_ZERO(&cpuset);
 	CPU_SET(TSP_ID, &cpuset);
 	sched_setaffinity(0, sizeof(cpuset), &cpuset);
 	double rnd;
@@ -78,7 +78,7 @@ int main(int argc,char* argv[]){
 		printf("usage: <number of threads> <number of users>\n");
 		return 0;
 	}
-	spin_init()
+	spin_init();
 	int thread_num=atoi(argv[1]);
 	int user_num=atoi(argv[2]);
 	user=new int(user_num);
