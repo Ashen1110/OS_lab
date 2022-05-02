@@ -20,19 +20,22 @@ bool cmpxchg(atomic_bool *goal, bool x, bool y){
 		*goal=y;
 		return true;
 	}else{
-		if(*goal)
-			printf("true\n");
-		else
-			printf("false\n");
+		// if(*goal)
+		// 	printf("true\n");
+		// else
+		// 	printf("false\n");
 		return false;
 	}
 }
-void spin_init(){
-	unsigned int cpu,node;
-	TSP_ID = TSP_ID_ARRAY[getcpu(&cpu,&node)];
-	for(int i=0; i<Num_core; i++){
-		WaitArray[i]=0;
-	}
+void spin_init(int i){
+	// unsigned int cpu,node;
+	// TSP_ID = TSP_ID_ARRAY[getcpu(&cpu,&node)];
+	// for(int i=0; i<Num_core; i++){
+	// 	WaitArray[i]=0;
+	// }
+	TSP_ID = TSP_ID_ARRAY[i%Num_core];
+
+
 }
 
 void spin_lock(){
@@ -60,17 +63,24 @@ void spin_unlock(){
 int* user;
 int thread_num;
 int user_num;
+int array2[4];
 void * dothread(void *arg){
+	int num=*((int*)arg);
+	spin_init(num);
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 	CPU_SET(TSP_ID, &cpuset);
-	sched_setaffinity(0, sizeof(cpuset), &cpuset);
+	pthread_t th = pthread_self();
+	pthread_setaffinity_np(th, sizeof(cpuset), &cpuset);
+	unsigned int cpu,node;
+	printf("%d %d %d\n",TSP_ID,num,sched_getcpu());
+	// sched_setaffinity(0, sizeof(cpuset), &cpuset);
 	double rnd;
 	int i;
 	struct timespec t1, t2;
 	double micro_second;
 	
-	for(int count=0;count<500;count++){
+	for(int count=0;count<1000;count++){
 		spin_lock() ; //LS
 		for(i=0;i<user_num;i++){
 			(*(user+i))+=1;
@@ -84,19 +94,32 @@ void * dothread(void *arg){
 		}while(micro_second > nCS_size*rnd);
 	}
 }
+
 int main(int argc,char* argv[]){
 	if(argc<3){
 		printf("usage: <number of threads> <number of users>\n");
 		return 0;
 	}
-	spin_init();
+	
 	int thread_num=atoi(argv[1]);
 	user_num=atoi(argv[2]);
 	user=new int[user_num]{0};
 	int err=0;
+	TSP_ID_ARRAY[0]=2;
+	TSP_ID_ARRAY[1]=0;
+	TSP_ID_ARRAY[2]=3;
+	TSP_ID_ARRAY[3]=1;
+	array2[0]=0;
+	array2[1]=1;
+	array2[2]=2;
+	array2[3]=3;
+	for(int i=0; i<Num_core; i++){
+		WaitArray[i]=0;
+	}
 	pthread_t thread1[thread_num];
 	for(int i=0;i<thread_num;i++){
-		err=pthread_create(&(thread1[i]), NULL, dothread, NULL);
+		int j=i;
+		err=pthread_create(&(thread1[i]), NULL, dothread, &array2[j%Num_core]);
 		if(err!=0){
 			printf("error in phread create\n");
 		}
