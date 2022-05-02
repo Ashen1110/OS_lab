@@ -27,6 +27,7 @@ bool cmpxchg(atomic_bool *goal, bool x, bool y){
 		return false;
 	}
 }
+<<<<<<< HEAD:RON/ron.cpp
 void spin_init(int i){
 	// unsigned int cpu,node;
 	// TSP_ID = TSP_ID_ARRAY[getcpu(&cpu,&node)];
@@ -36,6 +37,16 @@ void spin_init(int i){
 	TSP_ID = TSP_ID_ARRAY[i%Num_core];
 
 
+=======
+void spin_init(){
+	unsigned int cpu,node;
+	getcpu(&cpu,&node);
+	TSP_ID = TSP_ID_ARRAY[cpu];
+	printf("TSP_IS_ARRAY[%d]: %d\n", cpu, TSP_ID_ARRAY[cpu]);
+	for(int i=0; i<Num_core; i++){
+		WaitArray[i]=0;
+	}
+>>>>>>> 633690925b6143ff08925d44b5bc1e0a0b01c3c5:RON/ronX.cpp
 }
 
 void spin_lock(){
@@ -70,11 +81,16 @@ void * dothread(void *arg){
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 	CPU_SET(TSP_ID, &cpuset);
+<<<<<<< HEAD:RON/ron.cpp
 	pthread_t th = pthread_self();
 	pthread_setaffinity_np(th, sizeof(cpuset), &cpuset);
 	unsigned int cpu,node;
 	printf("%d %d %d\n",TSP_ID,num,sched_getcpu());
 	// sched_setaffinity(0, sizeof(cpuset), &cpuset);
+=======
+	sched_setaffinity(0, sizeof(cpuset), &cpuset);
+	
+>>>>>>> 633690925b6143ff08925d44b5bc1e0a0b01c3c5:RON/ronX.cpp
 	double rnd;
 	int i;
 	struct timespec t1, t2;
