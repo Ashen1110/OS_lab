@@ -15,7 +15,18 @@ int TSP_ID_ARRAY[Num_core];
 thread_local int TSP_ID;
 atomic_bool InUse=ATOMIC_VAR_INIT(false);
 atomic_int WaitArray[Num_core];
-
+bool cmpxchg(atomic_bool *goal, bool x, bool y){
+	if(*goal==x){
+		*goal=y;
+		return true;
+	}else{
+		if(*goal)
+			printf("true\n");
+		else
+			printf("false\n");
+		return false;
+	}
+}
 void spin_init(){
 	unsigned int cpu,node;
 	TSP_ID = TSP_ID_ARRAY[getcpu(&cpu,&node)];
@@ -31,7 +42,7 @@ void spin_lock(){
 		if(cmpxchg(&InUse, false, true)){
 			WaitArray[TSP_ID] = 0;
 			return;
-		}
+		}//printf("I am waiting in %d.\n",TSP_ID);
 	}
 }
 
@@ -59,7 +70,7 @@ void * dothread(void *arg){
 	struct timespec t1, t2;
 	double micro_second;
 	
-	while(1){
+	for(int count=0;count<500;count++){
 		spin_lock() ; //LS
 		for(i=0;i<user_num;i++){
 			(*(user+i))+=1;
@@ -80,18 +91,26 @@ int main(int argc,char* argv[]){
 	}
 	spin_init();
 	int thread_num=atoi(argv[1]);
-	int user_num=atoi(argv[2]);
-	user=new int(user_num);
+	user_num=atoi(argv[2]);
+	user=new int[user_num]{0};
 	int err=0;
+	pthread_t thread1[thread_num];
 	for(int i=0;i<thread_num;i++){
-		pthread_t thread1;
-		err=pthread_create(&thread1, NULL, dothread, NULL);
+		err=pthread_create(&(thread1[i]), NULL, dothread, NULL);
 		if(err!=0){
 			printf("error in phread create\n");
 		}
 	}
-
-	//pthread_join(thread1, NULL);  
-	//pthread_join(thread2, NULL);  
+	for(int i=0;i<thread_num;i++){
+		pthread_join(thread1[i], NULL); 
+	}
+	for(int i=0;i<(user_num/10);i++){
+		for(int j=0;j<10;j++){
+			printf("%d\t",(*(user+i*10+j)));
+		}printf("\n");
+	}
+	for(int i=0;i<Num_core;i++){
+		printf("WaitArray[%d]: %d\n",i,WaitArray[i].load());
+	}
 	return 0;
 }
