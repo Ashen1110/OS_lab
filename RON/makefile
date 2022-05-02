@@ -2,7 +2,7 @@ SHELL = /bin/bash
 CC = gcc
 C+ = g++
 CFLAGS = -pthread -g
-SRC = $(wildcard *.c) $(wildcard *.cpp)
+SRC = $(wildcard *.cpp) $(wildcard *.c)
 EXE = $(subst .,,$(SRC))
 all: ${EXE}
 
